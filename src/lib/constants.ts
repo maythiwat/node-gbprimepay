@@ -94,6 +94,14 @@ interface GBPrimePayMobileBankingOptions extends GBPrimePayBaseOptions {
   bankCode: GBPrimePayBankCodes
 }
 
+interface GBPrimePayQrCashResponse {
+  referenceNo: string
+  qrcode: string
+  resultCode: string
+  gbpReferenceNo: string
+  resultMessage: string
+}
+
 export type GBPrimePayOptions<T> =
   T extends GBPrimePayChannels.QR_CASH ? GBPrimePayQrCashOptions :
   T extends GBPrimePayChannels.LINEPAY ? GBPrimePayLinePayOptions :
@@ -104,4 +112,5 @@ export type GBPrimePayOptions<T> =
   T extends GBPrimePayChannels.MOBILE_BANKING ? GBPrimePayMobileBankingOptions : never
 
 export type GBPrimePayResponse<T> = 
-  T extends GBPrimePayChannels.QR_CASH ? Record<string, string> : string
+  T extends GBPrimePayChannels.QR_CASH ? GBPrimePayQrCashResponse :
+  T extends GBPrimePayChannels.LINEPAY ? string : any
