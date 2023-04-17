@@ -1,21 +1,27 @@
 import { createHmac } from 'crypto'
 import { URLSearchParams } from 'url'
-import axios from 'axios'
+import axios, { type AxiosInstance } from 'axios'
 
 import { GBPrimePayApiUrl, GBPrimePayChannels, GBPrimePayEnv, GBPrimePayOptions, GBPrimePayResponse } from './constants'
 import { regexToObject } from './utils'
 
 export class GBPrimePay {
-  private env: GBPrimePayEnv
+  private $http: AxiosInstance
+
+  private raw: boolean
+
   private token: string
   private publicKey: string
   private secretKey: string
 
-  constructor(token: string, publicKey: string, secretKey: string, sandbox = false) {
-    this.env = sandbox ? GBPrimePayEnv.TEST : GBPrimePayEnv.PROD
+  constructor(token: string, publicKey: string, secretKey: string, sandbox = false, raw = false) {
     this.token = token
     this.publicKey = publicKey
     this.secretKey = secretKey
+    this.raw = raw
+    this.$http = axios.create({
+      baseURL: sandbox ? GBPrimePayEnv.TEST : GBPrimePayEnv.PROD
+    })
   }
 
   static getChecksum(secretKey: string, ...args: string[]) {
@@ -58,43 +64,38 @@ export class GBPrimePay {
       opt.publicKey = this.publicKey
     }
   
-    const r = await axios.post(
+    const r = await this.$http.post(
       GBPrimePayApiUrl[channel],
-      new URLSearchParams(Object(options)).toString(),
-      {
-        baseURL: this.env
-      }
+      new URLSearchParams(Object(options)).toString()
     )
 
-    // console.log(r.headers)
-    // console.log(r.request.res.responseUrl)
-    // console.log(r.data)
-
-    if (channel == 'LINEPAY') {
-      return r.request.res.responseUrl
-    }
-
-    if (channel == 'TRUEWALLET') {
-      let matches = (r.data as string).match(/<input type="hidden" name="ptx_id" value="(\d+)"\s?\/?>/)
-      if (matches) {
-        return matches[1] as any
+    if (!this.raw) {
+      if (channel == 'LINEPAY') {
+        return r.request.res.responseUrl
       }
-    }
 
-    if (channel == 'MOBILE_BANKING') {
-      if (opt.bankCode == '014') {
-        let matches = (r.data as string).match(/<form action="(\S+)" method="get">/)
+      if (channel == 'TRUEWALLET') {
+        let matches = (r.data as string).match(/<input type="hidden" name="ptx_id" value="(\d+)"\s?\/?>/)
         if (matches) {
           return matches[1] as any
         }
       }
 
-      if (opt.bankCode == '002') {
-        let params = regexToObject(
-          r.data as string,
-          /(?<!<!--)<input\s+type="hidden"\s+name="([^"]+)"\s+id="[^"]*"\s+value="([^"]+)"\s*\/?>/gmi
-        )
-        return ('bualuangmbanking://mbanking.payment?' + (new URLSearchParams(params)).toString()) as any
+      if (channel == 'MOBILE_BANKING') {
+        if (opt.bankCode == '014') {
+          let matches = (r.data as string).match(/<form action="(\S+)" method="get">/)
+          if (matches) {
+            return matches[1] as any
+          }
+        }
+
+        if (opt.bankCode == '002') {
+          let params = regexToObject(
+            r.data as string,
+            /(?<!<!--)<input\s+type="hidden"\s+name="([^"]+)"\s+id="[^"]*"\s+value="([^"]+)"\s*\/?>/gmi
+          )
+          return ('bualuangmbanking://mbanking.payment?' + (new URLSearchParams(params)).toString()) as any
+        }
       }
     }
   
@@ -108,11 +109,10 @@ export class GBPrimePay {
    * @returns Response data (vary by channel)
    */
   async check(referenceNo: string) {
-    return await axios.post(
+    return await this.$http.post(
       '/v1/check_status_txn',
       { referenceNo },
       {
-        baseURL: this.env,
         auth: {
           username: this.secretKey,
           password: ''
@@ -131,13 +131,12 @@ export class GBPrimePay {
    * @returns Form object to be submitted to `truemoney_submitOtp()` you have to get and submit OTP Code within 60 secs
    */
   async truemoney_sendOtp(mobileNumber: string, ptxId: string) {
-    const r = await axios.post(
+    const r = await this.$http.post(
       '/v1/trueWallet/payment',
       new URLSearchParams({
         mobile_number: mobileNumber,
         ptx_id: ptxId
-      }).toString(),
-      { baseURL: this.env }
+      }).toString()
     )
 
     return regexToObject(
@@ -153,10 +152,9 @@ export class GBPrimePay {
    * @returns Form object to be submitted to `truemoney_submitOtp()` you have to get and submit OTP Code within 60 secs
    */
   async truemoney_resendOtp(ptxId: string) {
-    const r = await axios.get(
+    const r = await this.$http.get(
       '/true/payments/repeatauthapply',
       {
-        baseURL: this.env,
         params: {
           paymentTransaction: ptxId
         }
@@ -176,13 +174,12 @@ export class GBPrimePay {
    * @param frmObject - got from `truemoney_sendOtp()` or `truemoney_resendOtp()`
    */
   async truemoney_submitOtp(otpCode: string, frmObject: Record<string, string>) {
-    await axios.post(
+    await this.$http.post(
       '/true/payments/verifytokens',
       new URLSearchParams({
         otp_code: otpCode,
         ...frmObject
-      }).toString(),
-      { baseURL: this.env }
+      }).toString()
     )
   }
 }
