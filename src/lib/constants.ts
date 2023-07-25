@@ -102,6 +102,35 @@ interface GBPrimePayQrCashResponse {
   resultMessage: string
 }
 
+export interface MerchantInfo {
+  currency_code: string
+  currency_code_th: string
+  currency_iso: string
+  currency_iso_th: string
+  currency_sign: string
+  currency_sign_th: string
+  display_theme: string
+  display_color: string
+  merchantId: number
+  merchant_address_1: string
+  merchant_address_2: string
+  merchant_address_1_th: string
+  merchant_address_2_th: string
+  merchant_companyname: string
+  merchant_companyname_th: string
+  merchant_conditions: string
+  merchant_logo: string
+  merchant_phone: string
+  merchant_taxid: string
+  merchant_website: string
+}
+
+export interface ShortMerchantInfo {
+  merchantId: string
+  initialShop: string
+  merchantName: string
+}
+
 export type GBPrimePayOptions<T> =
   T extends GBPrimePayChannels.QR_CASH ? GBPrimePayQrCashOptions :
   T extends GBPrimePayChannels.LINEPAY ? GBPrimePayLinePayOptions :

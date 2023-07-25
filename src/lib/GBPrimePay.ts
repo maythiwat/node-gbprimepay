@@ -2,7 +2,7 @@ import { createHmac } from 'crypto'
 import { URLSearchParams } from 'url'
 import axios, { type AxiosInstance } from 'axios'
 
-import { GBPrimePayApiUrl, GBPrimePayChannels, GBPrimePayEnv, GBPrimePayOptions, GBPrimePayResponse } from './constants'
+import { GBPrimePayApiUrl, GBPrimePayChannels, GBPrimePayEnv, GBPrimePayOptions, GBPrimePayResponse, MerchantInfo, ShortMerchantInfo } from './constants'
 import { regexToObject } from './utils'
 
 export class GBPrimePay {
@@ -28,6 +28,79 @@ export class GBPrimePay {
     return createHmac('sha256', secretKey)
       .update(args.join(''))
       .digest('hex')
+  }
+
+  /**
+   * Get infornation of merchant
+   * 
+   * @returns Full Merchant Info
+   */
+  async getMerchantInfo(): Promise<MerchantInfo | null> {
+    return await this.$http.get(
+      '/getmerchantinfo',
+      {
+        auth: {
+          username: this.publicKey,
+          password: ''
+        }
+      }
+    )
+      .then(r => r.data)
+      .catch(() => null)
+  }
+
+  /**
+   * Validates Public Key
+   * 
+   * @returns Short Merchant Info
+   */
+  async validatePublicKey(): Promise<ShortMerchantInfo | null> {
+    return await this.$http.get(
+      '/checkPublicKey',
+      {
+        auth: {
+          username: this.publicKey,
+          password: ''
+        }
+      }
+    )
+      .then(r => r.data)
+      .catch(() => null)
+  }
+
+  /**
+   * Validates Secret Key
+   * 
+   * @returns Short Merchant Info
+   */
+  async validateSecretKey(): Promise<ShortMerchantInfo | null> {
+    return await this.$http.get(
+      '/checkPrivateKey',
+      {
+        auth: {
+          username: this.secretKey,
+          password: ''
+        }
+      }
+    )
+      .then(r => r.data)
+      .catch(() => null)
+  }
+
+  /**
+   * Validates Token/Customer Key
+   * 
+   * @returns Short Merchant Info
+   */
+  async validateToken(): Promise<ShortMerchantInfo | null> {
+    return await this.$http.postForm(
+      '/checkCustomerKey',
+      {
+        token: this.token
+      }
+    )
+      .then(r => r.data)
+      .catch(() => null)
   }
 
   /**
@@ -64,9 +137,9 @@ export class GBPrimePay {
       opt.publicKey = this.publicKey
     }
   
-    const r = await this.$http.post(
+    const r = await this.$http.postForm(
       GBPrimePayApiUrl[channel],
-      new URLSearchParams(Object(options)).toString()
+      options
     )
 
     if (!this.raw) {
@@ -120,7 +193,7 @@ export class GBPrimePay {
       }
     )
       .then(r => r.data)
-      .catch(_ => null)
+      .catch(() => null)
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "gbprimepay",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Unofficial Node.js Library for GB Prime Pay",
   "repository": "https://github.com/maythiwat/node-gbprimepay",
   "author": "Maythiwat Chomchuen <maythiwat.chom@gmail.com>",
