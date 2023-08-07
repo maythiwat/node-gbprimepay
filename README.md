@@ -14,6 +14,7 @@ Still WIP, but contributions are welcome!
 By default the library will tries to parse data from HTML page returned from GB Prime Pay API and will give you a direct link (vary by channel), but you can revert this by set argument `raw` as `true`
 
 - `LINEPAY` will returns Rabbit LINE Pay Checkout URL Page
+- `SHOPEEPAY` will returns ShopeePay Checkout URL Page
 - `TRUEWALLET` will returns `ptx_id` for requesting OTP with `truemoney_sendOtp()` or `truemoney_resendOtp()` then submit using `truemoney_submitOtp()`
 - `MOBILE_BANKING` vary by Bank Code
   - `014` will returns SCB EASY App Deeplink `scbeasy://`

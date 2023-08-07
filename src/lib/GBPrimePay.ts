@@ -143,7 +143,7 @@ export class GBPrimePay {
     )
 
     if (!this.raw) {
-      if (channel == 'LINEPAY') {
+      if (['LINEPAY', 'SHOPEEPAY'].includes(channel)) {
         return r.request.res.responseUrl
       }
 

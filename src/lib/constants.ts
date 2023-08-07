@@ -142,4 +142,5 @@ export type GBPrimePayOptions<T> =
 
 export type GBPrimePayResponse<T> = 
   T extends GBPrimePayChannels.QR_CASH ? GBPrimePayQrCashResponse :
-  T extends GBPrimePayChannels.LINEPAY ? string : any
+  T extends GBPrimePayChannels.LINEPAY ? string :
+  T extends GBPrimePayChannels.SHOPEEPAY ? string : any
