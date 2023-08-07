@@ -139,7 +139,7 @@ export class GBPrimePay {
   
     const r = await this.$http.postForm(
       GBPrimePayApiUrl[channel],
-      options
+      opt
     )
 
     if (!this.raw) {
